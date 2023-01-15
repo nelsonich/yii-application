@@ -6,6 +6,121 @@
     <br>
 </p>
 
+
+## RUN PROJECT INSTRUCTION FOR NGINX
+
+To deploy this project run
+
+```
+  1) sudo nano /etc/nginx/sites-available/site_name_fontend.conf
+  
+  server {
+    charset utf-8;
+    client_max_body_size 128M;
+
+    listen 80; ## listen for ipv4
+    #listen [::]:80 default_server ipv6only=on; ## listen for ipv6
+
+    server_name yii-frontend.test;
+    root        /var/www/yii-application/frontend/web/;
+    index       index.php;
+
+    access_log  /var/www/yii-application/log/frontend-access.log;
+    error_log   /var/www/yii-application/log/frontend-error.log;
+
+    location / {
+        # Redirect everything that isn't a real file to index.php
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    # uncomment to avoid processing of calls to non-existing static files by Yii
+    #location ~ \.(js|css|png|jpg|gif|swf|ico|pdf|mov|fla|zip|rar)$ {
+    #    try_files $uri =404;
+    #}
+    #error_page 404 /404.html;
+
+    # deny accessing php files for the /assets directory
+    location ~ ^/assets/.*\.php$ {
+        deny all;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~* /\. {
+        deny all;
+    }
+  }
+```
+
+```
+  2) sudo nano /etc/nginx/sites-available/site_name_backend.conf
+
+  server {
+      charset utf-8;
+      client_max_body_size 128M;
+
+      listen 80; ## listen for ipv4
+      #listen [::]:80 default_server ipv6only=on; ## listen for ipv6
+
+      server_name yii-backend.test;
+      root        /var/www/yii-application/backend/web/;
+      index       index.php;
+
+      access_log  /var/www/yii-application/log/backend-access.log;
+      error_log   /var/www/yii-application/log/backend-error.log;
+
+      location / {
+          # Redirect everything that isn't a real file to index.php
+          try_files $uri $uri/ /index.php$is_args$args;
+      }
+
+      # uncomment to avoid processing of calls to non-existing static files by Yii
+      #location ~ \.(js|css|png|jpg|gif|swf|ico|pdf|mov|fla|zip|rar)$ {
+      #    try_files $uri =404;
+      #}
+      #error_page 404 /404.html;
+
+      # deny accessing php files for the /assets directory
+      location ~ ^/assets/.*\.php$ {
+          deny all;
+      }
+
+      location ~ \.php$ {
+          fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+          fastcgi_index index.php;
+          fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+          include fastcgi_params;
+      }
+
+      location ~* /\. {
+          deny all;
+      }
+  }
+```
+
+```
+  3) sudo ln -s /etc/nginx/sites-available/site_name_fontend.conf /etc/nginx/sites-enabled/
+  4) sudo ln -s /etc/nginx/sites-available/site_name_backend.conf /etc/nginx/sites-enabled/
+  5) sudo nginx -t
+  6) append site name to /etc/hosts
+  7) sudo systemctl restart nginx
+```
+
+## DB Migrations
+
+```
+1) php yii migrate --migrationPath=@yii/rbac/migrations
+
+2) php yii migrate
+```
+
+
+
 Yii 2 Advanced Project Template is a skeleton [Yii 2](http://www.yiiframework.com/) application best for
 developing complex Web applications with multiple tiers.
 
